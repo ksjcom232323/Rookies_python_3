@@ -6,8 +6,16 @@ import pandas as pd, os, time
 from dotenv import load_dotenv
 from notion_client import Client
 from notion_client.errors import APIResponseError
+from pymongo import MongoClient
 
 load_dotenv()
+
+client = MongoClient(
+    "mongodb://mongoadmin:password@222.101.236.155:27017/"
+    "?authSource=admin"
+)
+db = client['python_three']
+collection = db['accident_license_data']
 
 def get_notion_db_data():
     token = os.getenv("NOTION_TOKEN")
@@ -92,7 +100,19 @@ for col in 숫자컬럼:
 
 df = df.groupby("region", as_index=False)[숫자컬럼].sum()
 
-print(df.to_string(index=False))
-print("최종 지역 개수:", len(df))
 
-df.to_csv("accident.csv", index=False, encoding="utf-8-sig")
+results = df.to_dict(orient="records")
+# print(df.to_string(index=False))
+# print("최종 지역 개수:", len(df))
+
+
+for result in results:
+    print(f"{result.get('region')}")
+    data = collection.find_one({'region':result.get('region')})
+    if data is not None:
+        collection.update_one({'region':data['region']},
+                       {"$set":result})
+        print(f"[갱신] {result.get('region')}")
+    else:
+        save_id = collection.insert_one(result)
+        print(f"[저장 성공] 지역 : {result.get('region')} | 저장ID : {save_id}")
