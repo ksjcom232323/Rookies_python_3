@@ -2,6 +2,14 @@ import pandas, os, csv
 from dotenv import load_dotenv, find_dotenv
 from notion_client import Client
 from pathlib import Path
+from pymongo import MongoClient
+
+client = MongoClient(
+    "mongodb://mongoadmin:password@222.101.236.155:27017/"
+    "?authSource=admin"
+)
+db = client['python_three']
+col = db['accident_license_data']
 
 def get_notion_db_data():
     """
@@ -66,6 +74,12 @@ for page in result["results"]:
         값 = get_text(data.get(면허, {}), "rich_text")
         결과[지역명]["licensed_population"] += int(값 or 0)
 
-for 지역명, row in 결과.items():
-    print(지역명, row.get("licensed_population", ""))
-    
+for result in 결과.items():
+    data = col.find_one({'region':result[1].get('region')})
+    if data is not None:
+        col.update_one({'region':data['region']},
+                       {"$set":result[1]})
+        print(f'[중복] {result[0]}')
+    else:
+        save_id = col.insert_one(result[1])
+        print(f'[저장 성공] 지역 : {result[0]} | 저장ID : {save_id}')
