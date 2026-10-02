@@ -4,12 +4,6 @@ from dotenv import load_dotenv
 from notion_client import Client
 from pymongo import MongoClient
 
-client = MongoClient(
-    "mongodb://mongoadmin:password@222.101.236.155:27017/"
-    "?authSource=admin"
-)
-db = client['python_three']
-col = db['accident_license_data']
 
 def get_notion_db_data():
     """notion API로 DB_1에 접속후 쿼리값을 받아서 리턴하는 함수."""
@@ -28,6 +22,10 @@ def get_notion_db_data():
     
     return notion.data_sources.query(data_source_id=data_source_id)
 
+def get_text(prop, key):
+    """속성에서 원하는 키값의 데이터 뽑아오는 함수"""
+    items = prop.get(key) or [{}]
+    return items[0].get("plain_text", "") or ""
 
 def preprocess_license_data(result):
     """데이터 전처리하는 함수\n
@@ -63,29 +61,40 @@ def preprocess_license_data(result):
     rows = []
     for page in result["results"]:
         data = page["properties"]
-        row = {"region": data.get("지역별", {}).get("title", [{}])[0].get("plain_text", "")}
+        row = {"region": get_text(data.get("지역별", {}), "title")}
         for 면허 in 면허종류:
-            row[면허] = int((data.get(면허, {}).get("rich_text") or [{}])[0].get("plain_text", "0") or 0)
+            row[면허] = int(get_text(data.get(면허, {}), "rich_text") or 0)
         rows.append(row)
 
     df = pd.DataFrame(rows)
     df["region"] = df["region"].replace({"경기북부": "경기", "경기남부": "경기"})
     df["licensed_population"] = df[면허종류].sum(axis=1)
-    합계 = df.groupby("region")["licensed_population"].sum()
+    # print("\n========전처리 테스트라인 시작========")
+    # 합계 = df.groupby("region")["licensed_population"].sum()
+    # for 지역명 in 합계.index.difference(지역목록):
+    #     print("목록에 없는 지역:", 지역명)
 
-    for 지역명 in 합계.index.difference(지역목록):
-        print("목록에 없는 지역:", 지역명)
+    # for 지역명 in 지역목록:
+    #     결과[지역명]["licensed_population"] = int(합계.get(지역명, 0))
 
-    for 지역명 in 지역목록:
-        결과[지역명]["licensed_population"] = int(합계.get(지역명, 0))
-
-    # 확인용 출력 (MongoDB 저장 없음)
-    for 지역명, row in 결과.items():
-        print(지역명, row)
+    # # 확인용 출력 (MongoDB 저장 없음)
+    # for 지역명, row in 결과.items():
+    #     print(지역명, row)
+    # print("========전처리 테스트라인 종료========\n")
     return 결과
 
 def mongodb_update(preprocessed_data):
     """mongodb에 전처리데이터 업데이트하는 함수"""
+
+    #connect MongoDB
+    client = MongoClient(
+        "mongodb://mongoadmin:password@222.101.236.155:27017/"
+        "?authSource=admin"
+    )
+    db = client['python_three']
+    col = db['accident_license_data']
+
+    #update
     for result in preprocessed_data.items():
         data = col.find_one({'region':result[1].get('region')})
         if data is not None:
