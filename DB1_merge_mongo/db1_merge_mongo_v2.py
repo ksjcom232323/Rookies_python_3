@@ -4,6 +4,11 @@ from dotenv import load_dotenv
 from notion_client import Client
 from pymongo import MongoClient
 
+"""
+노션에서 DB데이터를 받아와서
+지역/면허인구 2개의 칼럼으로 전처리를 한다.(경기북부/남부는 경기 1개 지역으로 통합한다.)
+
+"""
 
 def get_notion_db_data():
     """notion API로 DB_1에 접속후 쿼리값을 받아서 리턴하는 함수."""
@@ -107,7 +112,6 @@ def mongodb_update(preprocessed_data):
 
 if __name__ == "__main__":
     result = get_notion_db_data()
-    # print(result)
     preprocessed_data = preprocess_license_data(result)
     mongodb_update(preprocessed_data)
 
