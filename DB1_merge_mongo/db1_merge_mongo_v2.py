@@ -91,9 +91,11 @@ def preprocess_license_data(result):
 
 def mongodb_update(preprocessed_data):
     """mongodb에 전처리데이터 업데이트하는 함수"""
+    
+    MONGO_DB_CON = os.getenv('MONGO_DB_CON')
     #connect MongoDB
     client = MongoClient(
-        "mongodb://mongoadmin:password@222.101.236.155:27017/"
+        f'{MONGO_DB_CON}'
         "?authSource=admin"
     )
     db = client['python_three']
@@ -105,7 +107,7 @@ def mongodb_update(preprocessed_data):
         if data is not None:
             col.update_one({'region':data['region']},
                             {"$set":result[1]})
-            print(f'[중복] {result[0]}')
+            print(f'[갱신] {result[0]}')
         else:
             save_id = col.insert_one(result[1])
             print(f'[저장 성공] 지역 : {result[0]} | 저장ID : {save_id}')
