@@ -5,6 +5,29 @@ from notion_client.errors import APIResponseError
 
 load_dotenv()
 
+def mongodb_update(df):
+    '''
+    mongodb 업데이트 함수
+    '''
+    MONGO_DB_CON = os.getenv('MONGO_DB_CON')
+    client = MongoClient(
+        f'{MONGO_DB_CON}'
+        "?authSource=admin"
+    )
+    db = client['python_three']
+    collection = db['accident_license_data']
+
+    results = df.to_dict(orient="records")
+
+    for result in results:
+        data = collection.find_one({'region':result.get('region')})
+        if data is not None:
+            collection.update_one({'region':data['region']},
+                        {"$set":result})
+            print(f"[갱신] {result.get('region')}")
+        else:
+            save_id = collection.insert_one(result)
+            print(f"[저장 성공] 지역 : {result.get('region')} | 저장ID : {save_id}")
 
 def get_notion_db_data():
     """Notion API로 DB_2에 접속해 전체 데이터를 조회하는 함수."""
@@ -116,3 +139,4 @@ print("최종 지역 개수:", len(df))
 
 # 전처리 결과를 CSV 파일로 저장
 df.to_csv("accident.csv", index=False, encoding="utf-8-sig")
+mongodb_update(df)
