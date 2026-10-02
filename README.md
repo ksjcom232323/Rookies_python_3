@@ -72,7 +72,7 @@ SK쉴더스 루키즈 35기 파이썬 3조
 5. test_map.html과 `pyproject.py`이 연결되어있는지 확인합니다.
 6. 브라우저에서 `http://127.0.0.1:5000`으로 접속합니다.
 
-Flask는 MongoDB 조회 결과를 Python 리스트로 전달하고, HTML에서는 Jinja2의 `tojson` 필터로 변환하여 사용합니다.
+Flask는 MongoDB 조회 결과를 Python 파일로 전달하고, HTML에서는 Jinja2의 `tojson` 필터로 변환하여 사용합니다.
 
 ## 참고 사항
 
