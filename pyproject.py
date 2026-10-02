@@ -1,19 +1,28 @@
 from flask import Flask, render_template
 from pymongo import MongoClient
 import json
+import os
+from dotenv import load_dotenv, set_key, find_dotenv
+
+env = find_dotenv()
+load_dotenv(env)
 
 app = Flask(__name__)
+
+DBCON = os.getenv("MONGO_DB_CON")
+print(DBCON)
 
 # client = MongoClient('mongodb://localhost:27017/')
 # db = client['python_three'] # 222.101 DB 이름
 # col = db['accident_license_data'] #222.101 내부 컬렉션 이름
 # client = MongoClient('222.101.236.155:27017', serverSelectionTimeoutMS=2000)
 client = MongoClient(
-    "mongodb://mongoadmin:password@222.101.236.155:27017/"
+    f"{DBCON}"
     "?authSource=admin"
 )
 db = client['python_three']
 col = db['accident_license_data']
+print(client)
 
 # try:
 #     # MongoDB의 기본 포트 - 27017
