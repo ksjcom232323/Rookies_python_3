@@ -24,13 +24,13 @@ db = client['python_three']
 col = db['accident_license_data']
 print(client)
 
-# try:
-#     # MongoDB의 기본 포트 - 27017
-#     client = MongoClient('mongodb://222.101.236.155:27017/', serverSelectionTimeoutMS=2000)
-#     print(client.server_info().get('version'))
-#     print("MongoDB 엔진 가동 확인 완료!")
-# except Exception as e:
-#     print("연결 실패: 서버가 꺼져 있거나 설치가 잘못됨.", e)
+try:
+    # MongoDB의 기본 포트 - 27017
+    client = MongoClient('mongodb://222.101.236.155:27017/', serverSelectionTimeoutMS=2000)
+    print(client.server_info().get('version'))
+    print("MongoDB 엔진 가동 확인 완료!")
+except Exception as e:
+    print("연결 실패: 서버가 꺼져 있거나 설치가 잘못됨.", e)
 
 
 
